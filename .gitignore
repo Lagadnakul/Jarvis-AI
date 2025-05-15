@@ -72,3 +72,7 @@ desktop.ini
 *.pem
 .vercel
 .netlify
+
+# API Keys and Secrets
+**/configs/keys.js
+**/*.pem
