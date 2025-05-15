@@ -1,14 +1,38 @@
-const express = require('express');
-const router = express.Router();
-const { processCommand, stopSpeaking, getAvailableVoices } = require('../controllers/aiController');
+import express from 'express';
+import { 
+    processCommand, 
+    stopSpeakingHandler as stopSpeaking, 
+    getAvailableVoices 
+} from '../controllers/aiController.js';
+import { formatResponse } from '../utils/responseUtils.js';
 
-router.post('/process', processCommand);
-router.post('/stop-speaking', stopSpeaking);
-router.get('/voices', getAvailableVoices);
-router.get('/test', (req, res) => {
-    res.json({
-        message: 'Test route is working!'
-    });
+const router = express.Router();
+
+// Process voice/text commands
+router.post('/process', async (req, res, next) => {
+    try {
+        await processCommand(req, res);
+    } catch (error) {
+        next(error);
+    }
 });
 
-module.exports = router;
+// Stop text-to-speech
+router.post('/stop-speaking', async (req, res, next) => {
+    try {
+        await stopSpeaking(req, res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Get available voices
+router.get('/voices', async (req, res, next) => {
+    try {
+        await getAvailableVoices(req, res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+export default router;

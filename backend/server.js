@@ -1,21 +1,27 @@
-const express = require('express');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const connectDB = require('./src/config/db');
-const { formatResponse } = require('./src/utils/responseUtils');
-const { ERROR_MESSAGES } = require('./src/utils/constants');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import dotenv from 'dotenv';
+import { connectDB } from './src/config/db.js';
+import aiRoutes from './src/routes/aiRoutes.js';
+import { formatResponse } from './src/utils/responseUtils.js';
+import { ERROR_MESSAGES } from './src/utils/constants.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 
-// Rate limiting
+// Configure rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: {
-        success: false,
-        error: 'Too many requests from this IP, please try again later.'
-    }
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: formatResponse(false, null, ERROR_MESSAGES.RATE_LIMIT_EXCEEDED)
 });
 
 // Middleware
@@ -23,41 +29,38 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', limiter);
 
-// Health check route
-app.get('/health', (req, res) => {
-    res.json(formatResponse(true, { status: 'OK' }));
-});
-
-// Connect MongoDB
-connectDB();
-
 // Routes
-app.use('/api/ai', require('./src/routes/aiRoutes'));
+app.use('/api/ai', aiRoutes);
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json(
-        formatResponse(false, null, 'Route not found')
-    );
+// Health check
+app.get('/health', (req, res) => {
+    res.json(formatResponse(true, { status: 'Server is running' }));
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
+    console.error('Server Error:', err);
     res.status(err.status || 500).json(
         formatResponse(false, null, err.message || ERROR_MESSAGES.GENERAL_ERROR)
     );
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
 
-// Handle unhandled promise rejections
+try {
+    await connectDB();
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+} catch (error) {
+    console.error('Server startup error:', error);
+    process.exit(1);
+}
+
+// Handle unhandled rejections
 process.on('unhandledRejection', (err) => {
-    console.error('Unhandled Promise Rejection:', err);
-    // Do not exit the process in production
+    console.error('Unhandled Rejection:', err);
     if (process.env.NODE_ENV === 'development') {
         process.exit(1);
     }
