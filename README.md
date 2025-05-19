@@ -1,5 +1,8 @@
 <div align="center">
 
+
+
+
 # <img src="https://img.freepik.com/free-vector/graident-ai-robot-vectorart_78370-4114.jpg?semt=ais_hybrid&w=740" width="40" height="40" alt="Robot" /> Jarvis AI Assistant
 
 <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=600&size=30&duration=3000&pause=1000&color=0969DA&center=true&vCenter=true&width=435&lines=Your+AI+Voice+Companion;Intelligent+Conversations;Smart+Home+Integration;Personalized+Experience" alt="Typing SVG" />
